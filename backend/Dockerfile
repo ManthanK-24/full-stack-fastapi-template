@@ -26,3 +26,6 @@ COPY ./prestart.sh /app/
 COPY ./tests-start.sh /app/
 
 COPY ./app /app/app
+
+# Run Alembic migrations to update the database schema
+# RUN alembic upgrade head

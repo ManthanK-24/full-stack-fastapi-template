@@ -1,5 +1,5 @@
 from sqlmodel import Field, Relationship, SQLModel
-
+from datetime import datetime
 
 # Shared properties
 # TODO replace email str with EmailStr when sqlmodel supports it
@@ -66,6 +66,8 @@ class ItemBase(SQLModel):
 # Properties to receive on item creation
 class ItemCreate(ItemBase):
     title: str
+    wholesale_price: int = 0
+    retail_price: int = 0
 
 
 # Properties to receive on item update
@@ -77,9 +79,12 @@ class ItemUpdate(ItemBase):
 class Item(ItemBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     title: str
+    wholesale_price: int = 0
+    retail_price: int = 0
     owner_id: int | None = Field(default=None, foreign_key="user.id", nullable=False)
     owner: User | None = Relationship(back_populates="items")
 
+    warehouses: list["WareHouseItems"] = Relationship(back_populates="item")
 
 # Properties to return via API, id is always required
 class ItemPublic(ItemBase):
@@ -111,3 +116,65 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str
+
+# Properties to receive via API on creation
+class WareHouseAddItems(SQLModel):
+    quantity: int = 0
+    
+
+class WareHouseItemsBase(SQLModel):
+    id: int
+    quantity: int     
+
+class WareHouseItems(WareHouseAddItems, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+
+    item_id: int | None = Field(default=None, foreign_key="item.id", nullable=False)
+    item: Item | None = Relationship(back_populates="warehouses")
+    
+
+# Properties to receive on item update
+class WareHouseItemsUpdate(WareHouseItemsBase):
+    title: str | None = None  # type: ignore    
+
+# Properties to return via API, id is always required
+class WareHousePublic(SQLModel):
+    id: int
+    quantity: int
+
+class WareHousePublicList(SQLModel):
+    id: int
+    quantity: int
+    # item_name: str
+
+class WareHouseItemsPublic(SQLModel):
+    data: list[WareHousePublicList]
+    count: int
+
+# class StoreAdd(SQLModel):
+#     location: str = ""
+
+# class Store(StoreAdd, table=True):
+#     id: int | None = Field(default=None, primary_key=True)
+
+# class StoreItems(SQLModel, table=True):
+#     id: int | None = Field(default=None, primary_key=True)
+#     store_id: int | None = Field(default=None, foreign_key="store.id", nullable=False)
+#     store: Store | None = Relationship(back_populates="items")
+
+#     item_id: int | None = Field(default=None, foreign_key="item.id", nullable=False)
+#     item: Item | None = Relationship(back_populates="items")
+
+#     quantity: int = 0
+
+    
+
+
+# class Purchase(SQLModel, table=True):
+#     id: int | None = Field(default=None, primary_key=True)
+
+#     item_id: int | None = Field(default=None, foreign_key="item.id", nullable=False)
+#     item: Item | None = Relationship(back_populates="items")
+
+#     quantity: int = 0
+#     purchased_at: datetime = datetime.now()
